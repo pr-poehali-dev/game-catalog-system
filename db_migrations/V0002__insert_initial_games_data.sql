@@ -1,0 +1,10 @@
+
+INSERT INTO games (title, developer, price, original_price, discount, image_url, rating, tags, description) VALUES
+('Cyber Legends: Neon Warriors', 'Neon Studios', 1999.00, 2999.00, 33, 'https://cdn.poehali.dev/projects/31eeeeb4-c765-4558-8abf-653db276f611/files/1cb3aef2-b91a-4422-8e15-82546a0276db.jpg', 4.8, ARRAY['Экшн', 'Шутер', 'Киберпанк'], 'Захватывающий киберпанк-шутер с невероятной графикой'),
+('Fantasy Quest: Dragon Age', 'Epic Fantasy Games', 2499.00, NULL, NULL, 'https://cdn.poehali.dev/projects/31eeeeb4-c765-4558-8abf-653db276f611/files/d296009f-7d4f-4a5c-873a-6e87e440b994.jpg', 4.9, ARRAY['RPG', 'Фэнтези', 'Приключения'], 'Эпическая RPG с драконами и магией'),
+('Space Odyssey', 'Cosmic Interactive', 1799.00, 2399.00, 25, 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=600&h=800&fit=crop', 4.7, ARRAY['Стратегия', 'Космос', 'Симулятор'], 'Покорите космос в этой стратегической игре'),
+('Horror Mansion', 'Dark Vision', 1499.00, NULL, NULL, 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&h=800&fit=crop', 4.5, ARRAY['Хоррор', 'Выживание', 'Инди'], 'Атмосферный хоррор с пугающими загадками'),
+('Racing Fury', 'Speed Demons', 1899.00, NULL, NULL, 'https://images.unsplash.com/photo-1511882150382-421056c89033?w=600&h=800&fit=crop', 4.6, ARRAY['Гонки', 'Аркада', 'Мультиплеер'], 'Динамичные гонки на высоких скоростях'),
+('Medieval Warriors', 'Iron Forge', 2299.00, 2999.00, 23, 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&h=800&fit=crop', 4.8, ARRAY['Экшн', 'Средневековье', 'PvP'], 'Средневековые сражения в режиме PvP'),
+('Puzzle Master', 'Brain Games', 899.00, NULL, NULL, 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=600&h=800&fit=crop', 4.4, ARRAY['Головоломка', 'Казуал', 'Логика'], 'Увлекательные головоломки для ума'),
+('Battle Royale Arena', 'Titan Games', 0.00, NULL, NULL, 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=800&fit=crop', 4.7, ARRAY['Battle Royale', 'Шутер', 'F2P'], 'Бесплатная battle royale игра с 100 игроками');
