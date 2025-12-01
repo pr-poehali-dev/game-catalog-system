@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import GameCard, { Game } from '@/components/GameCard';
@@ -6,59 +6,71 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { gamesData } from '@/data/gamesData';
 import { toast } from 'sonner';
+import { fetchGames, addToCart, getCart } from '@/lib/api';
 
 export default function Catalog() {
   const [searchParams] = useSearchParams();
-  const [cart, setCart] = useState<Game[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
+  const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('popular');
+  const [loading, setLoading] = useState(true);
 
-  const handleAddToCart = (game: Game) => {
-    setCart([...cart, game]);
-    toast.success(`${game.title} добавлена в корзину!`);
+  useEffect(() => {
+    loadGames();
+    loadCart();
+  }, [sortBy]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadGames();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const loadGames = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchGames(searchQuery, sortBy);
+      setGames(data.games || []);
+    } catch (error) {
+      toast.error('Ошибка загрузки игр');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredGames = useMemo(() => {
-    let filtered = [...gamesData];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (game) =>
-          game.title.toLowerCase().includes(query) ||
-          game.developer.toLowerCase().includes(query) ||
-          game.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
+  const loadCart = async () => {
+    try {
+      const data = await getCart();
+      setCartCount(data.count || 0);
+    } catch (error) {
+      console.error('Failed to load cart:', error);
     }
+  };
 
-    switch (sortBy) {
-      case 'price-asc':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      default:
-        break;
+  const handleAddToCart = async (game: Game) => {
+    try {
+      await addToCart(game.id);
+      toast.success(`${game.title} добавлена в корзину!`);
+      loadCart();
+    } catch (error) {
+      toast.error('Ошибка добавления в корзину');
+      console.error(error);
     }
-
-    return filtered;
-  }, [searchQuery, sortBy]);
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header cartItemsCount={cart.length} />
+      <Header cartItemsCount={cartCount} />
 
       <div className="container py-8">
         <div className="mb-8">
           <h1 className="font-montserrat text-5xl font-bold mb-4">Каталог игр</h1>
           <p className="text-muted-foreground text-lg">
-            Найдено игр: {filteredGames.length}
+            Найдено игр: {games.length}
           </p>
         </div>
 
@@ -98,9 +110,14 @@ export default function Catalog() {
           )}
         </div>
 
-        {filteredGames.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <Icon name="Loader2" size={64} className="mx-auto mb-4 text-game-purple animate-spin" />
+            <p className="text-muted-foreground">Загрузка игр...</p>
+          </div>
+        ) : games.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredGames.map((game) => (
+            {games.map((game) => (
               <GameCard key={game.id} game={game} onAddToCart={handleAddToCart} />
             ))}
           </div>

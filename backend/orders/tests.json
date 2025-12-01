@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get orders without user ID",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create order",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "test-user-123"
+      },
+      "body": {
+        "cartItems": [
+          {
+            "gameId": 1,
+            "price": 1999
+          }
+        ]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "orderId": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

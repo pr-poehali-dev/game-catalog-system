@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,19 +8,54 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import { getOrders, getUserId } from '@/lib/api';
+
+interface OrderItem {
+  gameId: number;
+  title: string;
+  price: number;
+  gameKey: string;
+}
+
+interface Order {
+  id: number;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  items: OrderItem[];
+}
 
 export default function Profile() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userId] = useState(getUserId());
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await getOrders();
+      setOrders(data.orders || []);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
     toast.success('Вход выполнен успешно!');
   };
 
-  const purchaseHistory = [
-    { id: 1, title: 'Cyber Legends: Neon Warriors', date: '15.11.2024', price: 1999 },
-    { id: 2, title: 'Fantasy Quest: Dragon Age', date: '10.11.2024', price: 2499 },
-  ];
+  const copyGameKey = (key: string) => {
+    navigator.clipboard.writeText(key);
+    toast.success('Ключ скопирован в буфер обмена!');
+  };
 
   if (!isLoggedIn) {
     return (
@@ -89,8 +124,8 @@ export default function Profile() {
                       <Icon name="User" size={32} className="text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-xl">Игрок #1337</p>
-                      <p className="text-muted-foreground">player@gamestore.com</p>
+                      <p className="font-bold text-xl">Игрок #{userId.slice(-8)}</p>
+                      <p className="text-sm text-muted-foreground break-all">{userId}</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -136,26 +171,62 @@ export default function Profile() {
                 <CardTitle>История покупок</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {purchaseHistory.map((order) => (
-                    <div
-                      key={order.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-game-purple/50 transition-colors"
-                    >
-                      <div>
-                        <p className="font-semibold">{order.title}</p>
-                        <p className="text-sm text-muted-foreground">{order.date}</p>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <Icon name="Loader2" size={48} className="mx-auto mb-4 text-game-purple animate-spin" />
+                    <p className="text-muted-foreground">Загрузка заказов...</p>
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Icon name="Package" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">У вас пока нет заказов</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {orders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="p-4 rounded-lg border border-border hover:border-game-purple/50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <p className="font-bold text-lg">Заказ #{order.id}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleDateString('ru-RU')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-2xl text-game-purple">{order.totalAmount}₽</p>
+                            <Badge className="bg-green-600">Оплачен</Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-card rounded">
+                              <div className="flex-1">
+                                <p className="font-semibold">{item.title}</p>
+                                <p className="text-sm text-muted-foreground">{item.price}₽</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <code className="px-3 py-1 bg-muted rounded text-sm font-mono">
+                                  {item.gameKey}
+                                </code>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => copyGameKey(item.gameKey)}
+                                >
+                                  <Icon name="Copy" size={14} />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-game-purple">{order.price}₽</p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          <Icon name="Download" size={14} className="mr-1" />
-                          Ключ
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

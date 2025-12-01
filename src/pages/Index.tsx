@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import GameCard, { Game } from '@/components/GameCard';
@@ -6,24 +6,53 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { gamesData, categories } from '@/data/gamesData';
+import { categories } from '@/data/gamesData';
 import { toast } from 'sonner';
+import { fetchGames, addToCart, getCart } from '@/lib/api';
 
 export default function Index() {
-  const [cart, setCart] = useState<Game[]>([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [featuredGames, setFeaturedGames] = useState<Game[]>([]);
 
-  const handleAddToCart = (game: Game) => {
-    setCart([...cart, game]);
-    toast.success(`${game.title} добавлена в корзину!`, {
-      description: `Цена: ${game.price}₽`,
-    });
+  useEffect(() => {
+    loadGames();
+    loadCart();
+  }, []);
+
+  const loadGames = async () => {
+    try {
+      const data = await fetchGames();
+      setFeaturedGames((data.games || []).slice(0, 4));
+    } catch (error) {
+      console.error('Failed to load games:', error);
+    }
   };
 
-  const featuredGames = gamesData.slice(0, 4);
+  const loadCart = async () => {
+    try {
+      const data = await getCart();
+      setCartCount(data.count || 0);
+    } catch (error) {
+      console.error('Failed to load cart:', error);
+    }
+  };
+
+  const handleAddToCart = async (game: Game) => {
+    try {
+      await addToCart(game.id);
+      toast.success(`${game.title} добавлена в корзину!`, {
+        description: `Цена: ${game.price}₽`,
+      });
+      loadCart();
+    } catch (error) {
+      toast.error('Ошибка добавления в корзину');
+      console.error(error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header cartItemsCount={cart.length} />
+      <Header cartItemsCount={cartCount} />
 
       <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
         <div 
